@@ -22,44 +22,47 @@ export default () => {
           onChange={e => setVegetarian(e.target.checked)}
         />
       </label>
-      <Query query={recipesQuery} variables={{ vegetarian }}>
-        {({ data, loading, error }) => {
+      <Query query={recipesQuery} variables={{ vegetarian }} pollInterval={3000}>
+        {({ data, loading, error, refetch }) => {
           if (loading) return <p>Loading...</p>;
           if (error) return <p>Error...</p>;
 
           return (
-            <ul>
-              {data.recipes.map(({ id, title, isStarred }) => (
-                <li key={id}>
-                  {title}
-                  <Mutation
-                    mutation={updateRecipeStarredMutation}
-                    refetchQueries={[
-                      {
-                        query: recipesQuery,
-                        variables: { vegetarian: false }
-                      },
-                      {
-                        query: recipesQuery,
-                        variables: { vegetarian: true }
-                      }
-                    ]}
-                    awaitRefetchQueries
-                  >
-                    {(updateRecipeStarred, { loading }) => (
-                      <button onClick={() => updateRecipeStarred({
-                        variables: {
-                          id, isStarred: !isStarred
+            <>
+              <button type="button" onClick={() => refetch()}>Refresh</button>
+              <ul>
+                {data.recipes.map(({ id, title, isStarred }) => (
+                  <li key={id}>
+                    {title}
+                    <Mutation
+                      mutation={updateRecipeStarredMutation}
+                      refetchQueries={[
+                        {
+                          query: recipesQuery,
+                          variables: { vegetarian: false }
+                        },
+                        {
+                          query: recipesQuery,
+                          variables: { vegetarian: true }
                         }
-                      })}>
-                        {isStarred && '⭐️'}
-                        {loading && 'Loading...'}
-                      </button>
-                    )}
-                  </Mutation>
-                </li>
-              ))}
-            </ul>
+                      ]}
+                      awaitRefetchQueries
+                    >
+                      {(updateRecipeStarred, { loading }) => (
+                        <button onClick={() => updateRecipeStarred({
+                          variables: {
+                            id, isStarred: !isStarred
+                          }
+                        })}>
+                          {isStarred && '⭐️'}
+                          {loading && 'Loading...'}
+                        </button>
+                      )}
+                    </Mutation>
+                  </li>
+                ))}
+              </ul>
+            </>
           );
         }}
       </Query>
